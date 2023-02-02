@@ -130,4 +130,6 @@ dmypy.json
 
 .idea/
 
-bot_run.bat
+run.bat
+mat.txt
+mat_to_json.py
