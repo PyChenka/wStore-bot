@@ -2,6 +2,7 @@ from aiogram import Dispatcher
 from aiogram.types import Message
 from aiogram.utils import exceptions
 
+from database.sqlite_db import db_read
 from init_bot import bot
 from keyboards import buttons_client
 
@@ -21,7 +22,7 @@ async def welcome_send(message: Message):
 # @dp.message_handler(commands=['shop'])
 async def show_available_pieces(message: Message):
     """Показывает товары в наличии"""
-    pass
+    await db_read(message)
 
 
 # @dp.message_handler(commands=['site'])

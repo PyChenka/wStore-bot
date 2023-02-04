@@ -3,7 +3,9 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import Message
 
+from database.sqlite_db import db_add
 from init_bot import bot
+from keyboards import buttons_admin
 
 ID = None
 
@@ -19,7 +21,8 @@ async def set_admin_id(message: Message):
     """Устанавливает ID текущего админа"""
     global ID
     ID = message.from_user.id
-    await bot.send_message(message.from_user.id, 'Выберите действие:')
+    await bot.send_message(message.from_user.id, 'Выберите действие:', reply_markup=buttons_admin)
+    await message.delete()
 
 
 async def start_loading(message: Message):
@@ -72,9 +75,7 @@ async def load_price(message: Message, state: FSMContext):
         async with state.proxy() as data:
             data['price'] = message.text
 
-        async with state.proxy() as data:
-            await message.reply(str(data))
-
+        await db_add(state)
         await state.finish()
 
 
