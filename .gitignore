@@ -131,6 +131,4 @@ dmypy.json
 .idea/
 
 run.bat
-misc/mat.txt
-misc/mat_to_json.py
 windstore_shop.db

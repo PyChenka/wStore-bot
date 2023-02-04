@@ -1,1 +1,1 @@
-from handlers import user, admin, other
+from handlers import user, admin

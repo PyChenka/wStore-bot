@@ -1,11 +1,11 @@
 from aiogram import Dispatcher
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.types import Message
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
-from database.sqlite_db import db_add
+from database.sqlite_db import db_add, db_read_all, db_delete
 from init_bot import bot
-from keyboards import buttons_admin
+from keyboards import buttons_operations, buttons_delete
 
 ID = None
 
@@ -21,7 +21,7 @@ async def set_admin_id(message: Message):
     """Устанавливает ID текущего админа"""
     global ID
     ID = message.from_user.id
-    await bot.send_message(message.from_user.id, 'Выберите действие:', reply_markup=buttons_admin)
+    await bot.send_message(message.from_user.id, 'Выберите действие:', reply_markup=buttons_operations)
     await message.delete()
 
 
@@ -70,13 +70,28 @@ async def load_description(message: Message, state: FSMContext):
 
 
 async def load_price(message: Message, state: FSMContext):
-    """Сохрание цены товара"""
+    """Сохранение цены товара"""
     if message.from_user.id == ID:
         async with state.proxy() as data:
             data['price'] = message.text
 
         await db_add(state)
         await state.finish()
+
+
+async def delete_item(message: Message):
+    """Отображает товары на удаление"""
+    if message.from_user.id == ID:
+        items = await db_read_all()
+        for item in items:
+            button = InlineKeyboardButton(text=f'Удалить', callback_data=f'del {item[1]}')
+            await bot.send_photo(message.from_user.id, item[0])
+            await bot.send_message(message.from_user.id, text=f'{item[1]}', reply_markup=InlineKeyboardMarkup().add(button))
+
+
+async def delete_run(query: CallbackQuery):
+    await db_delete(query.data.replace('del ', ''))
+    await query.answer(text=f'Товар удален!', show_alert=True)
 
 
 def register_admin_handlers(dp: Dispatcher):
@@ -87,3 +102,5 @@ def register_admin_handlers(dp: Dispatcher):
     dp.register_message_handler(load_description, state=AdminLoadItem.waiting_description)
     dp.register_message_handler(load_price, state=AdminLoadItem.waiting_price)
     dp.register_message_handler(set_admin_id, commands=['admin'], is_chat_admin=True)
+    dp.register_message_handler(delete_item, commands=['delete'])
+    dp.register_callback_query_handler(delete_run, lambda x: x.data and x.data.startswith('del '))

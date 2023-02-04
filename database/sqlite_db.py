@@ -21,6 +21,15 @@ async def db_add(state):
         base.commit()
 
 
-async def db_read(message: Message):
+async def db_read_single(message: Message):
     for item in cur.execute('SELECT * FROM shop').fetchall():
         await bot.send_photo(message.from_user.id, item[0], f'{item[1]}\n{item[2]}\n{item[3]}')
+
+
+async def db_read_all():
+    return cur.execute('SELECT * FROM shop').fetchall()
+
+
+async def db_delete(data):
+    cur.execute('DELETE FROM shop WHERE title == ?', (data, ))
+    base.commit()
